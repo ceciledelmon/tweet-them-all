@@ -15,7 +15,8 @@
   "dependencies": {
     "express": "^4.10.2",
     "pug": "^2.0.0-beta3",
-    "socket.io": "^1.4.8"
+    "socket.io": "^1.4.8",
+    "twit": "^2.2.4"
   },
   "bugs": {
     "url": "https://github.com/ceciledelmon/tweet-them-all/issues"

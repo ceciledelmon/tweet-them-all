@@ -2,6 +2,27 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var pug = require('pug');
+var Twit = require('twit');
+
+//Variables a proteger
+var client = new Twit({
+  consumer_key: '...',
+  consumer_secret: '...',
+  access_token: '...',
+  access_token_secret: '...'
+});
+
+
+client.get('search/tweets', {q:'pokemonGo',  count: 50}, function(err,data,response) {
+  console.log(data);
+});
+
+// stream.on('tweet', function(tweet) {
+//   });
+//   stream.on('error', function(error) {
+//     throw error;
+//   });
+
 
 app.get('/', function(req, res){
   var html = pug.renderFile('templates/index.pug');
