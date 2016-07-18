@@ -1,39 +1,32 @@
+require('dotenv').config();
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var pug = require('pug');
 var Twit = require('twit');
 
-//Variables a proteger
+//API Connexion
 var client = new Twit({
-  consumer_key: 'pspb2iLZ6xz0KuApSZWOUQpkr',
-  consumer_secret: 'aUVXVyRZNSJg9TGs3JuioT9ubTR9whFg7S2PkXq1RiaI1eX8rP',
-  access_token: '714454775-GhfVvCwYLx0Be2tbBtCABsHeRbHxsupvHqq5lb22',
-  access_token_secret: '8UITh7VSbGcCxLxFoKX3QEhaEZXii6dQfSHY4niG4qsbo'
+  consumer_key: process.env.consumer_key,
+  consumer_secret: process.env.consumer_secret,
+  access_token: process.env.access_token,
+  access_token_secret: process.env.access_token_secret
 });
 
-
-client.get('search/tweets', {q:'pokemonGo',  geocode:'48.856614,2.3522219000000177,2mi'}, function(err,data,response) {
-  //console.log(data.statuses[3].place.bounding_box.coordinates[0][0]);
-  //console.log(data);
+client.get('search/tweets', { q:'pokemonGo', geocode:'48.8579049,2.3447032,10km', count:50 }, function(err,data,response) {
   data.statuses.forEach(function(row) {
     if (row.place!=null) {
       console.log(row.place.bounding_box.coordinates[0][0]);
-      console.log(row.text);
     };
+    console.log(row.id);
+    console.log(row.text);
+    i++;
   });
-  });
-
-
-// stream.on('tweet', function(tweet) {
-//   });
-//   stream.on('error', function(error) {
-//     throw error;
-//   });
+});
 
 
 app.get('/', function(req, res){
-  var html = pug.renderFile('templates/index.pug');
+  var html = pug.renderFile('views/index.pug');
   res.send(html);
 });
 
