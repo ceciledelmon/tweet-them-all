@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tweet them all</title>
+</head>
+<body>
+  <button id="load">print tweets</button>
+  <ul id="messages"></ul>
+  <footer></footer>
+</div>
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+document.getElementById('load').addEventListener('click',function(){
+    console.log('click');
+    socket.emit('monevent');
+    return false;
+  });
+socket.on('monevent', function(tweets){
+  tweets.forEach(function(row) {
+    var li = document.createElement('li');
+    li.innerHTML = row.text;
+    document.getElementById('messages').appendChild(li);
+  });
+  });
+</script>
+</body>
+</html>

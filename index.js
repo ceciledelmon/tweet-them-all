@@ -1,9 +1,11 @@
 require('dotenv').config();
+var pug = require('pug');
+var Twit = require('twit');
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var pug = require('pug');
-var Twit = require('twit');
+
+var tweets = {};
 
 //API Connexion
 var client = new Twit({
@@ -13,25 +15,25 @@ var client = new Twit({
   access_token_secret: process.env.access_token_secret
 });
 
-client.get('search/tweets', { q:'pokemonGo', geocode:'48.8579049,2.3447032,10km', count:50 }, function(err,data,response) {
-  data.statuses.forEach(function(row) {
-    if (row.place!=null) {
-      console.log(row.place.bounding_box.coordinates[0][0]);
-    };
-    console.log(row.id);
-    console.log(row.text);
-    i++;
-  });
+client.get('search/tweets', { q:'pokemonGo', geocode:'48.8579049,2.3447032,15mi' }, function(err,data,response)
+  tweets = data.statuses;
 });
 
 
 app.get('/', function(req, res){
-  var html = pug.renderFile('views/index.pug');
-  res.send(html);
+  // var html = pug.renderFile('views/index.pug');
+  // res.send(html);
+  res.sendFile(__dirname + '/views/index.html');
 });
 
 io.on('connection', function(socket){
-  console.log('a user connected');
+  console.log('user connected');
+  socket.on('monevent', function(){
+    console.log('message: click click');
+  });
+  socket.on('monevent', function(msg){
+    io.emit('monevent', tweets);
+  });
 });
 
 http.listen(3000, function(){
