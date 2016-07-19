@@ -1,6 +1,7 @@
 require('dotenv').config();
 var pug = require('pug');
 var Twit = require('twit');
+var express = require('express');
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
@@ -15,24 +16,61 @@ var client = new Twit({
   access_token_secret: process.env.access_token_secret
 });
 
-client.get('search/tweets', { q:'pokemonGo', geocode:'48.8579049,2.3447032,15mi' }, function(err,data,response)
-  tweets = data.statuses;
+app.use(express.static('public'));
+
+app.set('views', './views');
+app.set('view engine', 'jade');
+
+app.get('/', function (req, res) {
+  res.render('index', { title: 'tweet-them-all', message: 'Hello there!'});
 });
 
 
-app.get('/', function(req, res){
-  // var html = pug.renderFile('views/index.pug');
-  // res.send(html);
-  res.sendFile(__dirname + '/views/index.html');
+/// catch 404 and forwarding to error handler
+app.use(function(req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
 });
 
+/// error handlers
+
+// development error handler
+// will print stacktrace
+if (app.get('env') === 'development') {
+  app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+      message: err.message,
+      error: err
+    });
+  });
+}
+
+// production error handler
+// no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+  res.status(err.status || 500);
+  res.render('error', {
+    message: err.message,
+    error: {}
+  });
+});
+
+//Socket io part
 io.on('connection', function(socket){
   console.log('user connected');
-  socket.on('monevent', function(){
-    console.log('message: click click');
+  io.emit('userConnected');
+  socket.on('location', function(position) {
+    client.get('search/tweets', { q:'pokemonGo -RT :)', geocode: position.latitude+','+position.longitude+',15mi', count:100 }, function(err,data,response){
+      tweets = data.statuses;
+      io.emit('collectedTweets', tweets);
+    });
   });
-  socket.on('monevent', function(msg){
-    io.emit('monevent', tweets);
+
+  socket.on('loadMore', function(){
+    console.log('Load More !');
+    //detect last tweet than upload after
   });
 });
 
