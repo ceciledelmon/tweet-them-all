@@ -22,9 +22,8 @@ app.set('views', './views');
 app.set('view engine', 'jade');
 
 app.get('/', function (req, res) {
-  res.render('index', { title: 'tweet-them-all', message: 'Hello there!'});
+  res.render('index', { title: 'Tweet-them-all !', message: 'Get all PokemonGo tweets in your area, find other players or advices to play.'});
 });
-
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
@@ -62,7 +61,7 @@ io.on('connection', function(socket){
   console.log('user connected');
   io.emit('userConnected');
   socket.on('location', function(position) {
-    client.get('search/tweets', { q:'pokemonGo -RT :)', geocode: position.latitude+','+position.longitude+',15mi', count:100 }, function(err,data,response){
+    client.get('search/tweets', { q:'pokemonGo -RT :)', geocode: position.latitude+','+position.longitude+',15mi', count:100, include_entities:true }, function(err,data,response){
       tweets = data.statuses;
       io.emit('collectedTweets', tweets);
     });

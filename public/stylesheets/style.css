@@ -1,8 +1,86 @@
-body {
+body{
+  background: #FFFFFF;
+}
+#main{
+  padding-top: 30vh;
+  margin: auto;
+  font: 12px "Open Sans", Helvetica, Arial, sans-serif;
+  color: #506264;
+  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#24cdad+0,ade197+68,eaf8df+100 */
+  background: #24cdad; /* Old browsers */
+  background: -moz-linear-gradient(left,  #24cdad 0%, #ade197 68%, #eaf8df 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(left,  #24cdad 0%,#ade197 68%,#eaf8df 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to right,  #24cdad 0%,#ade197 68%,#eaf8df 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#24cdad', endColorstr='#eaf8df',GradientType=1 ); /* IE6-9 */
+}
+img{
+  z-index: 1;
+  position: fixed;
+  top: -80px;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+#content{
+  z-index: 3;
+  position: relative;
+  box-sizing: border-box;
   padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  z-index: 1;
+  background: #FFFFFF;
+  min-height: 70vh;
+  width:100%;
+  margin: auto;
+}
+#wrap{
+  max-width: 900px;
+  margin: auto;
+}
+h1{
+  font-family: 'Slabo 27px', serif;
+  font-size: 20px;
+}
+h2{
+  font-size: 36px;
+  margin-top: 20px;
 }
 
 a {
   color: #00B7FF;
+}
+#tweet-container{
+  box-sizing: border-box;
+  padding: 50px;
+  margin-top: 40px;
+  border: 1px solid #e1e1e1;
+}
+button{
+  cursor: crosshair;
+  width: 100%;
+  border: none;
+  outline: none;
+  line-height: 36px;
+  font-size: 18px;
+  color: #eaf8df;
+  font-family: 'Slabo 27px', serif;
+  background: linear-gradient(270deg,  #24cdad, #24cdad, #ade197, #ade197, #24cdad, #24cdad);
+  background-size: 350% 100%;
+  background-position: 0% 50%;
+  text-decoration: underline;
+}
+button:hover{
+  animation: gradient-text-bg 4s linear infinite reverse;
+}
+
+@keyframes gradient-text-bg {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+canvas{
+  width: 100%;
 }

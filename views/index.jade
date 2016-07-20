@@ -1,7 +1,12 @@
 extends layout
 
 block content
-  h1= title
-  p= message
-  button#load print tweets
-  ul#messages
+  div#main
+    img(src="/images/header.svg")
+    div#content
+      div#wrap
+        h1= title
+        h2= message
+        #tweet-container
+          button#load Load More tweets
+          ul#messages
