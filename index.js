@@ -78,11 +78,14 @@ io.on('connection', function(socket){
     // });
   });
   socket.on('updateTweets', function(updatesParams) {
-    var id = updatesParams.lastId+1;
-    client.get('search/tweets', { q:'pokemonGo -RT', geocode: updatesParams.latitude+','+updatesParams.longitude+',15mi', since_id:id}, function(err,data,response){
-      var newtweets = data.statuses;
-      io.emit('newTweets', newtweets);
-      newTweets={};
+    client.get('search/tweets', { q:'pokemonGo -RT', geocode: updatesParams.latitude+','+updatesParams.longitude+',15mi', since_id:updatesParams.lastId}, function(err,data,response){
+      var newTweets = data.statuses;
+      console.log(updatesParams.lastId);
+      if (data.statuses[0]) {
+        if (data.statuses[0].id!=updatesParams.lastId) {
+            io.emit('newTweets', newTweets);
+        };
+      };
     });
   });
 });

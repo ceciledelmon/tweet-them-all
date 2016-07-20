@@ -1,12 +1,15 @@
 var socket = io();
 var renderer = null;
 var stage = new PIXI.Container();
-var allTweets = [];
+var pointsContainer = new PIXI.Container();
+
 var pointsCounter = 0;
 var newtweetsCounter = 0;
 var lastId = 0;
-var updatesParams= {};
-var pointsContainer = new PIXI.Container();
+
+var allTweets = [];
+var updatedParams= {};
+
 // create a texture from an image path
 var texture = PIXI.Texture.fromImage('../images/pokeball.svg');
 // create a new Sprite using the texture
@@ -60,36 +63,38 @@ socket.on('collectedTweets', function(params){
     };
   });
   displayTweets();
-  updatesParams = {
+  updatedParams = {
     latitude : params.latitude,
     longitude: params.longitude,
     lastId : lastId
   };
   setInterval(function(){
-    socket.emit('updateTweets', updatesParams);
+    console.log('ID avant envoi'+updatedParams.lastId);
+    socket.emit('updateTweets', updatedParams);
   }, 10000);
 });
 
 socket.on('newTweets', function(newTweets){
-  console.log(newTweets);
   newTweets.forEach(function(row) {
-    if (row.id) {
-      console.log(row.id);
-      //allTweets.push(row);
-      console.log(allTweets.length);
-      newtweetsCounter++;
-      if (row.id>updatesParams.lastId) {
-        updatesParams.lastId = row.id;
-      };
+    console.log(row.id);
+    allTweets.unshift(row);
+    allTweets.splice(100, 1);
+    console.log(allTweets.length);
+    console.log(allTweets[allTweets.length-1].text);
+    newtweetsCounter++;
+    if (row.id>=updatedParams.lastId) {
+      updatedParams.lastId = row.id;
+      console.log('dernier id en date' + row.id);
     };
   });
   document.getElementById('load').innerHTML = 'Load More tweets ('+newtweetsCounter+')';
-  newtweetsCounter = 0;
 });
 
 document.getElementById('load').addEventListener('click',function(){
   console.log('click');
   displayTweets();
+  newtweetsCounter = 0;
+  document.getElementById('load').innerHTML = 'Load More tweets ('+newtweetsCounter+')';
 });
 
 function displayTweets(){
