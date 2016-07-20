@@ -1,8 +1,11 @@
 var socket = io();
-var renderer;
+var renderer = null;
 var stage = new PIXI.Container();
 var allTweets = [];
 var pointsCounter = 0;
+var newtweetsCounter = 0;
+var lastId = 0;
+var updatesParams= {};
 var pointsContainer = new PIXI.Container();
 // create a texture from an image path
 var texture = PIXI.Texture.fromImage('../images/pokeball.svg');
@@ -21,11 +24,8 @@ points.position.y = -7;
 pointsContainer.position.x = 700;
 pointsContainer.position.y = 40;
 
-
 pointsContainer.addChild(points);
 pointsContainer.addChild(pokeball);
-stage.addChild(pointsContainer);
-
 
 socket.on('userConnected', function(){
   if (navigator.geolocation) {
@@ -34,9 +34,7 @@ socket.on('userConnected', function(){
     console.log('Your browser is out of fashion, there\'s no geolocation!');
   }
 });
-
 function positionSuccess(position) {
-  console.log(position);
   var userPosition = {
     latitude : position.coords.latitude,
     longitude : position.coords.longitude
@@ -54,15 +52,52 @@ function positionError(error) {
   showError('Error:' + errors[error.code]);
 };
 
-document.getElementById('load').addEventListener('click',function(){
-  console.log('click');
-  socket.emit('loadMore');
-  return false;
+socket.on('collectedTweets', function(params){
+  params.tweets.forEach(function(row) {
+    allTweets.push(row);
+    if (row.id>lastId) {
+      lastId = row.id;
+    };
+  });
+  displayTweets();
+  updatesParams = {
+    latitude : params.latitude,
+    longitude: params.longitude,
+    lastId : lastId
+  };
+  setInterval(function(){
+    socket.emit('updateTweets', updatesParams);
+  }, 10000);
 });
 
-socket.on('collectedTweets', function(tweets){
+socket.on('newTweets', function(newTweets){
+  console.log(newTweets);
+  newTweets.forEach(function(row) {
+    if (row.id) {
+      console.log(row.id);
+      //allTweets.push(row);
+      console.log(allTweets.length);
+      newtweetsCounter++;
+      if (row.id>updatesParams.lastId) {
+        updatesParams.lastId = row.id;
+      };
+    };
+  });
+  document.getElementById('load').innerHTML = 'Load More tweets ('+newtweetsCounter+')';
+  newtweetsCounter = 0;
+});
+
+document.getElementById('load').addEventListener('click',function(){
+  console.log('click');
+  displayTweets();
+});
+
+function displayTweets(){
   var y = 10;
-  tweets.forEach(function(row) {
+  console.log('displaying');
+  for (var i = stage.children.length - 1; i >= 0; i--) {stage.removeChild(stage.children[i]);};
+  stage.addChild(pointsContainer);
+  allTweets.forEach(function(row) {
     var tweet = new PIXI.Container();
     var date = new PIXI.Text(row.created_at,{font : "12px 'Slabo 27px'", fill : 0x506264, align : 'left'});
     var text = new PIXI.Text(row.text,{font : "14px 'Open Sans'", fill : 0x506264, align : 'left', wordWrap:true, wordWrapWidth:500});
@@ -77,21 +112,22 @@ socket.on('collectedTweets', function(tweets){
     tweet.interactive = true;
     tweet.on('mousedown', onDown);
     tweet.on('touchstart', onDown);
-    allTweets.push(tweet);
     stage.addChild(tweet);
     y += text.height + 40;
   });
-  console.log(allTweets);
-  renderer = new PIXI.WebGLRenderer(800, y, {backgroundColor : 0xffffff});
-  // DOM insertion
-  document.getElementById('tweet-container').appendChild(renderer.view);
-  console.log(renderer.view);
+  if (!renderer) {
+    renderer = new PIXI.WebGLRenderer(800, y, {backgroundColor : 0xffffff});
+    // DOM insertion
+    document.getElementById('tweet-container').appendChild(renderer.view);
+  }
   animate();
-});
+}
+
+
 
 function onDown(eventData) {
   pointsCounter++;
-  points.setText(pointsCounter);
+  points.text= pointsCounter;
   console.log(eventData.target);
   stage.removeChild(eventData.target);
 };

@@ -6,8 +6,6 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-var tweets = {};
-
 //API Connexion
 var client = new Twit({
   consumer_key: process.env.consumer_key,
@@ -60,16 +58,32 @@ app.use(function(err, req, res, next) {
 io.on('connection', function(socket){
   console.log('user connected');
   io.emit('userConnected');
-  socket.on('location', function(position) {
-    client.get('search/tweets', { q:'pokemonGo -RT :)', geocode: position.latitude+','+position.longitude+',15mi', count:100, include_entities:true }, function(err,data,response){
-      tweets = data.statuses;
-      io.emit('collectedTweets', tweets);
-    });
-  });
 
-  socket.on('loadMore', function(){
-    console.log('Load More !');
-    //detect last tweet than upload after
+  socket.on('location', function(position) {
+    client.get('search/tweets', { q:'pokemonGo -RT', geocode: position.latitude+','+position.longitude+',15mi', count:100, include_entities:true }, function(err,data,response){
+      var tweets = data.statuses;
+      var params = {
+        latitude : position.latitude,
+        longitude: position.longitude,
+        tweets: tweets
+      }
+      io.emit('collectedTweets', params);
+    });
+    // stream API ne permet pas une bonne localisation et pertinence des tweets.
+    // var boundingBox = [ position.latitude-0.5, position.longitude-0.5, position.latitude+0.5, position.longitude+0.5 ];
+    // console.log(boundingBox);
+    // var stream = client.stream('statuses/filter', { track: 'pokemonGo', locations:boundingBox, filter_level:'medium'});
+    // stream.on('tweet', function (tweet) {
+    //   console.log(tweet.text)
+    // });
+  });
+  socket.on('updateTweets', function(updatesParams) {
+    var id = updatesParams.lastId+1;
+    client.get('search/tweets', { q:'pokemonGo -RT', geocode: updatesParams.latitude+','+updatesParams.longitude+',15mi', since_id:id}, function(err,data,response){
+      var newtweets = data.statuses;
+      io.emit('newTweets', newtweets);
+      newTweets={};
+    });
   });
 });
 
