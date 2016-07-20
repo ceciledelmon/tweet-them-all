@@ -1,23 +1,32 @@
-// You can use either `new PIXI.WebGLRenderer`, `new PIXI.CanvasRenderer`, or `PIXI.autoDetectRenderer`
-// which will try to choose the best renderer for the environment you are in.
-var renderer = new PIXI.WebGLRenderer(800, 1500, {backgroundColor : 0xffffff});
-
-// The renderer will create a canvas element for you that you can then insert into the DOM.
-document.getElementById('tweet-container').appendChild(renderer.view);
-
-// You need to create a root container that will hold the scene you want to draw.
-var stage = new PIXI.Container();
-
-function animate() {
-  // start the timer for the next animation loop
-  requestAnimationFrame(animate);
-
-  // this is the main render call that makes pixi draw your container and its children.
-  renderer.render(stage);
-};
-
-
 var socket = io();
+var renderer;
+var stage = new PIXI.Container();
+var allTweets = [];
+var pointsCounter = 0;
+var pointsContainer = new PIXI.Container();
+// create a texture from an image path
+var texture = PIXI.Texture.fromImage('../images/pokeball.svg');
+// create a new Sprite using the texture
+var pokeball = new PIXI.Sprite(texture);
+var points = new PIXI.Text(pointsCounter,{font : "14px 'Open Sans'", fill : 0x506264, align : 'left'});
+
+pokeball.anchor.x = 0.5;
+pokeball.anchor.y = 0.5;
+pokeball.position.x = 0;
+pokeball.position.y = 0;
+
+points.position.x = 30;
+points.position.y = -7;
+// move the sprite to the center of the screen
+pointsContainer.position.x = 700;
+pointsContainer.position.y = 40;
+
+
+pointsContainer.addChild(points);
+pointsContainer.addChild(pokeball);
+stage.addChild(pointsContainer);
+
+
 socket.on('userConnected', function(){
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(positionSuccess, positionError, { enableHighAccuracy: true });
@@ -52,19 +61,44 @@ document.getElementById('load').addEventListener('click',function(){
 });
 
 socket.on('collectedTweets', function(tweets){
-  var y = 0;
+  var y = 10;
   tweets.forEach(function(row) {
     var tweet = new PIXI.Container();
-    var date = new PIXI.Text(row.created_at,{font : '12px Slabo 27px', fill : 0x506264, align : 'left'});
-    var text = new PIXI.Text(row.text,{font : '14px Open Sans', fill : 0x506264, align : 'left'});
+    var date = new PIXI.Text(row.created_at,{font : "12px 'Slabo 27px'", fill : 0x506264, align : 'left'});
+    var text = new PIXI.Text(row.text,{font : "14px 'Open Sans'", fill : 0x506264, align : 'left', wordWrap:true, wordWrapWidth:500});
+    var graphics = new PIXI.Graphics();
+    graphics.beginFill(0x24cdad, 0.3);
+    graphics.drawRect(5, 7, 140, 10);
+    tweet.addChild(graphics)
     tweet.addChild(date);
     text.position.y = 20;
     tweet.addChild(text);
     tweet.position.y = y;
+    tweet.interactive = true;
+    tweet.on('mousedown', onDown);
+    tweet.on('touchstart', onDown);
+    allTweets.push(tweet);
     stage.addChild(tweet);
-    console.log(text.height);
     y += text.height + 40;
   });
-  console.log(y);
+  console.log(allTweets);
+  renderer = new PIXI.WebGLRenderer(800, y, {backgroundColor : 0xffffff});
+  // DOM insertion
+  document.getElementById('tweet-container').appendChild(renderer.view);
+  console.log(renderer.view);
   animate();
 });
+
+function onDown(eventData) {
+  pointsCounter++;
+  points.setText(pointsCounter);
+  console.log(eventData.target);
+  stage.removeChild(eventData.target);
+};
+
+function animate() {
+  // start the timer for the next animation loop
+  requestAnimationFrame(animate);
+  // this is the main render call that makes pixi draw your container and its children.
+  renderer.render(stage);
+};
