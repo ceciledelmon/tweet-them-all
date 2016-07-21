@@ -69,22 +69,17 @@ socket.on('collectedTweets', function(params){
     lastId : lastId
   };
   setInterval(function(){
-    console.log('ID avant envoi'+updatedParams.lastId);
     socket.emit('updateTweets', updatedParams);
   }, 10000);
 });
 
 socket.on('newTweets', function(newTweets){
   newTweets.forEach(function(row) {
-    console.log(row.id);
-    allTweets.unshift(row);
-    allTweets.splice(100, 1);
-    console.log(allTweets.length);
-    console.log(allTweets[allTweets.length-1].text);
-    newtweetsCounter++;
-    if (row.id>=updatedParams.lastId) {
+    if (row.id>updatedParams.lastId) {
+      allTweets.unshift(row);
+      allTweets.splice(100, 1);
+      newtweetsCounter++;
       updatedParams.lastId = row.id;
-      console.log('dernier id en date' + row.id);
     };
   });
   document.getElementById('load').innerHTML = 'Load More tweets ('+newtweetsCounter+')';

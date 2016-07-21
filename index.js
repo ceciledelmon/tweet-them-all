@@ -58,7 +58,6 @@ app.use(function(err, req, res, next) {
 io.on('connection', function(socket){
   console.log('user connected');
   io.emit('userConnected');
-
   socket.on('location', function(position) {
     client.get('search/tweets', { q:'pokemonGo -RT', geocode: position.latitude+','+position.longitude+',15mi', count:100, include_entities:true }, function(err,data,response){
       var tweets = data.statuses;
@@ -80,12 +79,8 @@ io.on('connection', function(socket){
   socket.on('updateTweets', function(updatesParams) {
     client.get('search/tweets', { q:'pokemonGo -RT', geocode: updatesParams.latitude+','+updatesParams.longitude+',15mi', since_id:updatesParams.lastId}, function(err,data,response){
       var newTweets = data.statuses;
-      console.log(updatesParams.lastId);
-      if (data.statuses[0]) {
-        if (data.statuses[0].id!=updatesParams.lastId) {
-            io.emit('newTweets', newTweets);
-        };
-      };
+      io.emit('newTweets', newTweets);
+      data.statuses = {};
     });
   });
 });
