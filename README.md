@@ -11,6 +11,8 @@ $ npm i
 
 ## Usage
 
+You need to add your .env file with your twitter access.
+
 ```shell
 $ node index.js
 ```
