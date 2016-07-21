@@ -1,5 +1,4 @@
 require('dotenv').config();
-var pug = require('pug');
 var Twit = require('twit');
 var express = require('express');
 var app = require('express')();

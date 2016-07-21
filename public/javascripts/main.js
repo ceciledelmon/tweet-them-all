@@ -1,5 +1,6 @@
 var socket = io();
 var renderer = null;
+var Protonrenderer=null;
 var stage = new PIXI.Container();
 var pointsContainer = new PIXI.Container();
 var proton;
@@ -121,11 +122,9 @@ function createProton(y) {
   emitter.addSelfBehaviour(new Proton.CrossZone(new Proton.RectZone(50, 0, 500, y+50), 'bound'));
 }
 
-var Protonrenderer;
 
 function createRender() {
   Protonrenderer = new Proton.Renderer('other', proton);
-
   Protonrenderer.onParticleCreated = function(particle) {
     var particleSprite = new PIXI.Sprite(particle.target);
     particle.sprite = particleSprite;
@@ -152,7 +151,6 @@ function transformSprite(particleSprite, particle) {
   particleSprite.alpha = particle.alpha;
   particleSprite.rotation = particle.rotation*Math.PI/180;
 }
-
 
 function displayTweets(){
   var y = 10;
@@ -186,7 +184,6 @@ function displayTweets(){
   }
   animate();
 }
-
 
 function onDown(eventData) {
   console.log('Down');
