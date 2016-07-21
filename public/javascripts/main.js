@@ -2,10 +2,13 @@ var socket = io();
 var renderer = null;
 var stage = new PIXI.Container();
 var pointsContainer = new PIXI.Container();
+var proton;
+var emitter;
 
 var pointsCounter = 0;
 var newtweetsCounter = 0;
 var lastId = 0;
+var click = false;
 
 var allTweets = [];
 var updatedParams= {};
@@ -74,6 +77,7 @@ socket.on('collectedTweets', function(params){
 });
 
 socket.on('newTweets', function(newTweets){
+  console.log('reload');
   newTweets.forEach(function(row) {
     if (row.id>updatedParams.lastId) {
       allTweets.unshift(row);
@@ -91,6 +95,64 @@ document.getElementById('load').addEventListener('click',function(){
   newtweetsCounter = 0;
   document.getElementById('load').innerHTML = 'Load More tweets ('+newtweetsCounter+')';
 });
+
+
+function createProton(y) {
+  var texture = new PIXI.Texture.fromImage("../images/pokeball.svg");
+  proton = new Proton();
+  emitter = new Proton.BehaviourEmitter();
+  emitter.rate = new Proton.Rate(new Proton.Span(2, 5), new Proton.Span(.2, .5));
+  emitter.addInitialize(new Proton.Mass(1));
+  emitter.addInitialize(new Proton.ImageTarget(texture));
+  emitter.addInitialize(new Proton.Life(1, 2));
+  emitter.addInitialize(new Proton.Velocity(new Proton.Span(3, 9), new Proton.Span(0, 20, true), 'polar'));
+
+  emitter.addBehaviour(new Proton.Gravity(8));
+  emitter.addBehaviour(new Proton.Scale(new Proton.Span(1, 3), 0.3));
+  emitter.addBehaviour(new Proton.Alpha(1, 0.5));
+  emitter.addBehaviour(new Proton.Rotate(0, Proton.getSpan(-8, 9), 'add'));
+  emitter.p.x = 300;
+  emitter.p.y = y+50;
+  emitter.emit();
+  proton.addEmitter(emitter);
+
+  emitter.addSelfBehaviour(new Proton.Gravity(0));
+  emitter.addSelfBehaviour(new Proton.RandomDrift(30, 30, .1));
+  emitter.addSelfBehaviour(new Proton.CrossZone(new Proton.RectZone(50, 0, 500, y+50), 'bound'));
+}
+
+var Protonrenderer;
+
+function createRender() {
+  Protonrenderer = new Proton.Renderer('other', proton);
+
+  Protonrenderer.onParticleCreated = function(particle) {
+    var particleSprite = new PIXI.Sprite(particle.target);
+    particle.sprite = particleSprite;
+    stage.addChild(particle.sprite);
+  };
+
+  Protonrenderer.onParticleUpdate = function(particle) {
+    transformSprite(particle.sprite, particle);
+  };
+
+  Protonrenderer.onParticleDead = function(particle) {
+    stage.removeChild(particle.sprite);
+  };
+  Protonrenderer.start();
+}
+
+function transformSprite(particleSprite, particle) {
+  particleSprite.position.x = particle.p.x;
+  particleSprite.position.y = particle.p.y;
+  particleSprite.scale.x = particle.scale;
+  particleSprite.scale.y = particle.scale;
+  particleSprite.anchor.x = 0.5;
+  particleSprite.anchor.y = 0.5;
+  particleSprite.alpha = particle.alpha;
+  particleSprite.rotation = particle.rotation*Math.PI/180;
+}
+
 
 function displayTweets(){
   var y = 10;
@@ -112,6 +174,8 @@ function displayTweets(){
     tweet.interactive = true;
     tweet.on('mousedown', onDown);
     tweet.on('touchstart', onDown);
+    tweet.on('mouseup', onUp);
+    tweet.on('touchend', onUp);
     stage.addChild(tweet);
     y += text.height + 40;
   });
@@ -124,17 +188,28 @@ function displayTweets(){
 }
 
 
-
 function onDown(eventData) {
+  console.log('Down');
   pointsCounter++;
   points.text= pointsCounter;
-  console.log(eventData.target);
-  stage.removeChild(eventData.target);
+  createProton(eventData.target.y);
+  createRender();
+  click = true;
 };
+
+function onUp(eventData){
+  console.log('up');
+  click=false;
+  displayTweets();
+  stage.removeChild(eventData.target);
+}
 
 function animate() {
   // start the timer for the next animation loop
   requestAnimationFrame(animate);
+  if (click) {
+      proton.update();
+  }
   // this is the main render call that makes pixi draw your container and its children.
   renderer.render(stage);
 };
