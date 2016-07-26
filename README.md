@@ -11,7 +11,16 @@ $ npm i
 
 ## Usage
 
-You need to add your .env file with your twitter access.
+Add a .env file with your twitter access following the example below
+
+```shell
+consumer_key=yourAcces
+consumer_secret=yourAccesSecret
+access_token=yourToken
+access_token_secret=yourTokenSecret
+```
+
+Then
 
 ```shell
 $ node index.js
